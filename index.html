@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173f32">
+  <meta name="description" content="AgroLink — O'zbekiston fermerlari, xaridorlari va haydovchilari uchun hosil bozori.">
+  <title>AgroLink — hosil bozori</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#market" aria-label="AgroLink bosh sahifa">
+      <span class="brand-mark" aria-hidden="true">A</span>
+      <span>AgroLink<span class="brand-period">.</span></span>
+    </a>
+    <nav class="main-nav" aria-label="Asosiy navigatsiya">
+      <button class="nav-link active" data-view="market">Bozor</button>
+      <button class="nav-link" data-view="map">Xarita</button>
+      <button class="nav-link" data-view="orders">Buyurtmalar <span class="nav-count" id="order-count">0</span></button>
+      <button class="nav-link" data-view="drivers">Haydovchilar</button>
+    </nav>
+    <div class="topbar-right">
+      <span class="location-label"><span class="location-dot"></span> O'zbekiston</span>
+      <button class="avatar-button" id="profile-button" type="button" aria-label="Demo profilni ochish">A</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="view active" id="market-view" aria-labelledby="market-title">
+      <div class="market-intro">
+        <img class="market-field-image" src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=82" alt="" aria-hidden="true">
+        <div>
+          <p class="eyebrow"><span class="eyebrow-line"></span> DALADAN TO'G'RIDAN-TO'G'RI</p>
+          <h1 id="market-title">Hosil bozori<span class="title-mark">.</span></h1>
+          <p class="intro-copy">Yangi hosil. Kelishilgan narx. Ishonchli yetkazish.</p>
+        </div>
+        <div class="harvest-note"><span class="sun-icon">☼</span><span><strong>Hosil mavsumi</strong><br>Bugun yangi e'lonlar qo'shildi</span></div>
+      </div>
+
+      <div class="market-stats" aria-label="Bozor ko'rsatkichlari">
+        <div class="stat-cell"><span class="stat-number" id="listing-total">10</span><span class="stat-label">faol e'lon</span></div>
+        <div class="stat-cell"><span class="stat-number">5</span><span class="stat-label">fermer xo'jaligi</span></div>
+        <div class="stat-cell"><span class="stat-number">3</span><span class="stat-label">faol xaridor</span></div>
+        <div class="stat-note"><span class="live-indicator"></span> Narxlar fermer bilan kelishiladi</div>
+      </div>
+
+      <div class="market-toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.4 4.4"></path></svg>
+          <input id="search-input" type="search" placeholder="Mahsulot yoki fermerni qidiring" aria-label="Qidiruv">
+          <kbd>/</kbd>
+        </div>
+        <label class="sort-wrap"><span>Sortlash</span><select id="sort-select" aria-label="E'lonlarni sortlash"><option value="recent">Eng yangilari</option><option value="price-low">Narx: arzondan</option><option value="price-high">Narx: qimmatdan</option></select></label>
+        <button class="mobile-filter-button" id="mobile-filter-toggle" type="button">Filtrlar <span id="filter-count">0</span></button>
+      </div>
+
+      <div class="market-layout">
+        <aside class="filters" id="filters-panel" aria-label="E'lon filtrlari">
+          <div class="filter-heading"><h2>Filtrlar</h2><button id="reset-filters" type="button">Tozalash</button></div>
+          <label class="field-label" for="product-filter">Mahsulot turi</label>
+          <select class="filter-select" id="product-filter"><option value="">Barchasi</option></select>
+          <label class="field-label" for="region-filter">Viloyat</label>
+          <select class="filter-select" id="region-filter"><option value="">Barcha viloyatlar</option></select>
+          <div class="filter-divider"></div>
+          <p class="field-label">Narx, so'm/kg</p>
+          <div class="price-fields"><label><span>Dan</span><input id="price-min" type="number" min="0" placeholder="0"></label><span class="price-dash">—</span><label><span>Gacha</span><input id="price-max" type="number" min="0" placeholder="50 000"></label></div>
+          <div class="filter-divider"></div>
+          <label class="field-label" for="harvest-filter">Hosil muddati</label>
+          <select class="filter-select" id="harvest-filter"><option value="">Istalgan vaqt</option><option value="7">7 kun ichida</option><option value="14">14 kun ichida</option><option value="30">30 kun ichida</option></select>
+          <div class="filter-tip"><span class="tip-icon">i</span><span>Narx va yetkazish shartlarini fermer bilan bevosita kelishing.</span></div>
+        </aside>
+
+        <section class="listing-area" aria-label="Mahsulot e'lonlari">
+          <div class="results-heading"><p><strong id="result-count">10</strong> ta e'lon topildi</p><button class="map-shortcut" data-view="map" type="button"><span>⌖</span> Xaritada ko'rish</button></div>
+          <div class="listing-grid" id="listing-grid"></div>
+          <div class="empty-state" id="empty-state" hidden><span>⌕</span><h3>E'lon topilmadi</h3><p>Qidiruv yoki filtrlarni o'zgartirib ko'ring.</p><button id="empty-reset" type="button">Filtrlarni tozalash</button></div>
+        </section>
+      </div>
+      <footer class="page-footer"><span>© 2026 AgroLink</span><span>Mahalliy hosil, yangi imkoniyat</span><button data-view="orders" type="button">Yetkazish kalkulyatori <span>↗</span></button></footer>
+    </section>
+
+    <section class="view secondary-view" id="map-view" aria-labelledby="map-title">
+      <div class="page-heading-row"><div><p class="eyebrow"><span class="eyebrow-line"></span> HOSIL QAYERDA?</p><h1 id="map-title">Fermerlar xaritasi<span class="title-mark">.</span></h1><p class="intro-copy">Xo'jaliklar va yig'ish punktlarini xaritada ko'ring.</p></div><span class="map-key"><i class="key-farm"></i> Fermer xo'jaligi <i class="key-pickup"></i> Yig'ish punkti</span></div>
+      <div id="farm-map" class="farm-map" role="application" aria-label="Fermerlar va yig'ish punktlari xaritasi"></div>
+      <div class="map-bottom"><span><i class="live-indicator"></i> <strong id="map-farm-count">10</strong> ta hosil e'loni xaritada</span><span>Ma'lumot: OpenStreetMap</span></div>
+    </section>
+
+    <section class="view secondary-view" id="orders-view" aria-labelledby="orders-title">
+      <div class="page-heading-row"><div><p class="eyebrow"><span class="eyebrow-line"></span> BUYURTMALARINGIZ</p><h1 id="orders-title">Buyurtma va yetkazish<span class="title-mark">.</span></h1><p class="intro-copy">Buyurtmalar holati va yetkazish xarajatlarini kuzating.</p></div></div>
+      <div class="orders-layout">
+        <section class="orders-column"><div class="section-heading"><h2>Buyurtmalarim</h2><span class="section-count" id="orders-section-count">0</span></div><div id="orders-list" class="orders-list"></div><div class="orders-empty" id="orders-empty"><span class="empty-cart">↗</span><h3>Hali buyurtma yo'q</h3><p>Bozordan hosil tanlang va oldindan buyurtma bering.</p><button class="primary-button" data-view="market" type="button">Bozorga o'tish <span>→</span></button></div></section>
+        <aside class="shipping-calculator"><div class="calculator-top"><span class="calculator-icon">↗</span><div><p class="eyebrow">REJALASHTIRISH</p><h2>Yetkazish hisob-kitobi</h2></div></div><p class="calculator-copy">Masofa va yuk og'irligiga qarab taxminiy narx.</p>
+          <label class="field-label" for="distance-input">Masofa <span>km</span></label><div class="unit-input"><input id="distance-input" type="number" min="1" value="180"><span>km</span></div>
+          <label class="field-label" for="weight-input">Yuk og'irligi</label><div class="unit-input"><input id="weight-input" type="number" min="1" value="5000"><span>kg</span></div>
+          <label class="cold-toggle"><input id="refrigerated-input" type="checkbox" checked><span class="toggle-track"></span><span><strong>Sovutgichli mashina</strong><small>Tez buziladigan mahsulotlar uchun</small></span></label>
+          <div class="estimate-line"><span>Taxminiy yetkazish narxi</span><strong id="delivery-estimate">—</strong></div><p class="estimate-disclaimer">Yakuniy narx yo'nalish va transport mavjudligiga qarab belgilanadi.</p>
+        </aside>
+      </div>
+      <section class="tracking-section" id="tracking-section" hidden></section>
+    </section>
+
+    <section class="view secondary-view" id="drivers-view" aria-labelledby="drivers-title">
+      <div class="page-heading-row"><div><p class="eyebrow"><span class="eyebrow-line"></span> HAYDOVCHILAR UCHUN</p><h1 id="drivers-title">Yo'lingizni toping<span class="title-mark">.</span></h1><p class="intro-copy">Yuk reyslarini band qiling yoki yangi ish o'rnini toping.</p></div><div class="driver-note"><span class="driver-note-icon">↗</span><span><strong>Hamkor haydovchilar</strong><br>O'zbekiston bo'ylab buyurtmalar</span></div></div>
+      <div class="driver-stats"><div><strong id="available-load-count">4</strong><span>ochiq reys</span></div><div><strong id="available-job-count">3</strong><span>ish o'rni</span></div><div><strong id="claimed-load-count">0</strong><span>mening reyslarim</span></div><p><i class="live-indicator"></i> Yangi yuklar muntazam qo'shiladi</p></div>
+      <div class="driver-toolbar"><div class="driver-tabs" role="tablist" aria-label="Haydovchi bo'limlari"><button class="driver-tab active" data-driver-tab="loads" role="tab" aria-selected="true">Yuk reyslari <span id="driver-load-tab-count">4</span></button><button class="driver-tab" data-driver-tab="jobs" role="tab" aria-selected="false">Ish o'rinlari <span id="driver-job-tab-count">3</span></button></div><div class="driver-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.4 4.4"></path></svg><input id="driver-search-input" type="search" placeholder="Yo'nalish yoki ishni qidiring" aria-label="Reys va ishlarni qidirish"></div><select id="driver-region-filter" aria-label="Viloyat bo'yicha filtrlash"><option value="">Barcha viloyatlar</option></select></div>
+      <div class="driver-list" id="driver-list"></div>
+      <div class="driver-empty" id="driver-empty" hidden><h2>Hozircha e'lon topilmadi</h2><p>Qidiruv so'zi yoki viloyat filtrini o'zgartiring.</p></div>
+    </section>
+    <section class="view secondary-view" id="services-view" aria-labelledby="services-title">
+      <div class="page-heading-row"><div><p class="eyebrow"><span class="eyebrow-line"></span> FERMERLAR UCHUN</p><h1 id="services-title">Pullik xizmatlar<span class="title-mark">.</span></h1><p class="intro-copy">E'loningizni ko'proq xaridorga ko'rsating va savdoni tezlashtiring.</p></div><span class="demo-price-note">DEMO TARIFLAR</span></div>
+      <div class="service-grid">
+        <article class="service-card boost-service"><div class="service-card-top"><span class="service-symbol">↑</span><span class="service-tag">7 KUN</span></div><p class="eyebrow">KO'PROQ KO'RINISH</p><h2>E'lonni yuqoriga ko'tarish</h2><p class="service-description">Tanlangan e'lon bozor ro'yxatida birinchi bo'lib ko'rinadi.</p><div class="service-price">15 000 <small>so'm / e'lon</small></div><label class="field-label" for="promotion-listing">Ko'tariladigan e'lon</label><select class="filter-select" id="promotion-listing"></select><button class="primary-button service-buy" data-service-purchase="boost" type="button">Payme test to'lovi <span>→</span></button><p class="service-footnote">Test rejimi: haqiqiy pul yechilmaydi.</p></article>
+        <article class="service-card plus-service"><div class="service-card-top"><span class="service-symbol">✳</span><span class="service-tag plus-tag">PLUS</span></div><p class="eyebrow">FERMER OBUNASI</p><h2>AgroLink Plus</h2><p class="service-description">30 kunlik obuna va oy davomida 3 ta bepul e'lon ko'tarish.</p><div class="service-price">49 000 <small>so'm / oy</small></div><div class="plus-benefit"><span>✓</span> 3 ta e'lon ko'tarish obunaga kiritilgan</div><button class="primary-button service-buy" data-service-purchase="plus" type="button">Payme test to'lovi <span>→</span></button><p class="service-footnote">Test rejimi: haqiqiy pul yechilmaydi.</p></article>
+      </div>
+      <div class="service-state" id="service-state"></div>
+      <section class="payment-history"><div class="section-heading"><h2>To'lovlar tarixi</h2><span class="section-count" id="payment-count">0</span></div><div class="payment-list" id="payment-list"></div><p class="payment-empty" id="payment-empty">Test to'lovlaringiz shu yerda ko'rinadi.</p></section>
+      <p class="payment-disclaimer">Payme merchant kalitlari ulanmaguncha bu faqat demo simulyatsiya. Tariflar sinov uchun berilgan.</p>
+    </section>
+  </main>
+
+  <dialog class="order-dialog" id="order-dialog" aria-labelledby="order-dialog-title">
+    <form id="order-form" method="dialog">
+      <div class="dialog-header"><div><p class="eyebrow">OLDINDAN BUYURTMA</p><h2 id="order-dialog-title">Hosilni band qiling</h2></div><button class="close-dialog" type="button" aria-label="Yopish">×</button></div>
+      <div class="dialog-product" id="dialog-product"></div>
+      <input type="hidden" id="order-listing-id">
+      <label class="field-label" for="order-volume">Buyurtma hajmi <span>(tonna)</span></label><div class="unit-input"><input id="order-volume" type="number" min="0.1" step="0.1" required><span>tonna</span></div>
+      <label class="field-label" for="delivery-date">Yetkazish sanasi</label><input class="form-input" id="delivery-date" type="date" required>
+      <label class="field-label" for="delivery-address">Yetkazish manzili</label><textarea class="form-input address-input" id="delivery-address" placeholder="Viloyat, tuman, manzil" required></textarea>
+      <div class="order-summary"><span>Taxminiy mahsulot qiymati</span><strong id="order-total">—</strong></div>
+      <button class="primary-button submit-order" type="submit">Buyurtmani tasdiqlash <span>→</span></button>
+      <p class="dialog-note">Buyurtma yuborilgach, fermer siz bilan bog'lanib tafsilotlarni kelishadi.</p>
+    </form>
+  </dialog>
+  <dialog class="profile-dialog" id="profile-dialog" aria-labelledby="profile-dialog-title">
+    <div class="profile-dialog-head"><div><p class="eyebrow">DEMO HISOB</p><h2 id="profile-dialog-title">AgroLink profilingiz</h2></div><button class="close-dialog" id="close-profile" type="button" aria-label="Profil oynasini yopish">×</button></div>
+    <div class="profile-summary"><span class="profile-avatar">A</span><span><strong>AgroLink foydalanuvchisi</strong><small>Xaridor · demo rejim</small></span></div>
+    <p class="profile-note">Buyurtmalar ushbu brauzerda saqlanadi. Telefon orqali kirish keyingi bosqichda ulanadi.</p>
+    <button class="primary-button profile-orders" data-view="services" type="button">Fermer xizmatlari <span>→</span></button>
+    <button class="primary-button profile-orders" data-view="orders" type="button">Buyurtmalarimni ochish <span>→</span></button>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="app.js"></script>
+</body>
+</html>
